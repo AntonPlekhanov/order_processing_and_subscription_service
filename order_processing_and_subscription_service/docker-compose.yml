@@ -1,0 +1,48 @@
+services:
+  web-app:
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./service:/service
+    env_file:
+      - ./.env
+    environment:
+      - DB_HOST=database
+      - DB_NAME=dbname
+      - DB_USER=dbuser
+      - DB_PASS=pass
+      - TOKEN=${TOKEN}
+      - SECRET_KEY=${SECRET_KEY}
+    command: >
+      sh -c "python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      - database
+
+  database:
+    image: postgres:14.6-alpine
+    environment:
+      - POSTGRES_DB=dbname
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=pass
+
+  telegram-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+    env_file:
+      - ./.env
+    depends_on:
+      - database
+      - web-app
+    environment:
+      - DB_HOST=database
+      - DB_NAME=dbname
+      - DB_USER=dbuser
+      - DB_PASS=pass
+      - TOKEN=${TOKEN}
+
+
+
+
